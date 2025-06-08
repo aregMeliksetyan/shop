@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Shopping List</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fallback styles if Tailwind doesn't load */
+        body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background-color: #f9fafb; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 1rem; margin-bottom: 1rem; }
+        .btn { padding: 0.5rem 1rem; border-radius: 4px; border: none; cursor: pointer; font-size: 0.875rem; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-danger:hover { background: #b91c1c; }
+        input, select { padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.875rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background: #f9fafb; font-weight: 600; cursor: pointer; }
+        .priority-high { background: #fee2e2; color: #991b1b; }
+        .priority-med { background: #fef3c7; color: #92400e; }
+        .priority-low { background: #dcfce7; color: #166534; }
+        .purchased { opacity: 0.6; text-decoration: line-through; }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div style="padding: 20px; text-align: center;">
+            <p>Loading...</p>
+            <p style="font-size: 12px; color: #666;">If this doesn't load, try opening Developer Tools (F12) to see any errors.</p>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
+
+        // Simple icons as text/symbols
+        const PlusIcon = () => "+";
+        const TrashIcon = () => "🗑";
+        const SortUpIcon = () => "↑";
+        const SortDownIcon = () => "↓";
+
+        const ShoppingListApp = () => {
+          // Load data from localStorage on startup
+          const [items, setItems] = useState(() => {
+            try {
+              const saved = localStorage.getItem('shoppingListItems');
+              return saved ? JSON.parse(saved) : [
+{ id: 1, item: 'bulgur', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 2, item: 'corn starch', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 3, item: 'cotton', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 4, item: 'garlic', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 5, item: 'ginger', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 6, item: 'lemon', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 7, item: 'lettuce', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 8, item: 'mustard powder', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 9, item: 'mustard', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 10, item: 'nutritional yeast', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 11, item: 'paper for oven', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 12, item: 'pickled cucumbers', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 13, item: 'plastic wrap', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 14, item: 'Sanitizer small container', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 15, item: 'seven grains', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 16, item: '', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 17, item: '', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 18, item: '', priority: 1, category: '0 non-costco', purchased: false },
+{ id: 19, item: 'pharmacy', priority: 1, category: '0 prescription', purchased: false },
+{ id: 20, item: 'ABC FN', priority: 1, category: '0 prescription', purchased: false },
+{ id: 21, item: 'DEF GK', priority: 1, category: '0 prescription', purchased: false },
+{ id: 22, item: 'boots for N', priority: 1, category: '1 clothes', purchased: false },
+{ id: 23, item: 'boots for G', priority: 1, category: '1 clothes', purchased: false },
+{ id: 24, item: 'Pant (soft, warm)', priority: 1, category: '1 clothes', purchased: false },
+{ id: 25, item: 'rain coat for D also windbreaker', priority: 1, category: '1 clothes', purchased: false },
+{ id: 26, item: 'snowsuit (coat and pant) for N and B', priority: 1, category: '1 clothes', purchased: false },
+{ id: 27, item: 'wool tights', priority: 1, category: '1 clothes', purchased: false },
+{ id: 28, item: '', priority: 1, category: '1 clothes', purchased: false },
+{ id: 29, item: 'baby shampoo', priority: 1, category: '1 household', purchased: false },
+{ id: 30, item: 'bulb', priority: 1, category: '1 household', purchased: false },
+{ id: 31, item: 'dishwasher soap', priority: 1, category: '1 household', purchased: false },
+{ id: 32, item: 'disposable gloves', priority: 1, category: '1 household', purchased: false },
+{ id: 33, item: 'gift card', priority: 1, category: '1 household', purchased: false },
+{ id: 34, item: 'green soap', priority: 1, category: '1 household', purchased: false },
+{ id: 35, item: 'laundry detergent', priority: 1, category: '1 household', purchased: false },
+{ id: 36, item: 'napkin (tissue)', priority: 1, category: '1 household', purchased: false },
+{ id: 37, item: 'paper towel', priority: 1, category: '1 household', purchased: false },
+{ id: 38, item: 'shampoo', priority: 1, category: '1 household', purchased: false },
+{ id: 39, item: 'soap liquid', priority: 1, category: '1 household', purchased: false },
+{ id: 40, item: 'sponges for washing dishes', priority: 1, category: '1 household', purchased: false },
+{ id: 41, item: 'sunscreen', priority: 1, category: '1 household', purchased: false },
+{ id: 42, item: 'toilet paper', priority: 1, category: '1 household', purchased: false },
+{ id: 43, item: 'tooth paste', priority: 1, category: '1 household', purchased: false },
+{ id: 44, item: 'Valentin cards and gift', priority: 1, category: '1 household', purchased: false },
+{ id: 45, item: 'ziplock bags', priority: 1, category: '1 household', purchased: false },
+{ id: 46, item: '', priority: 1, category: '1 household', purchased: false },
+{ id: 47, item: '', priority: 1, category: '1 household', purchased: false },
+{ id: 48, item: '', priority: 1, category: '1 household', purchased: false },
+{ id: 49, item: 'tea', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 50, item: 'almond', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 51, item: 'artichokes in marinade', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 52, item: 'avocado oil', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 53, item: 'baby body shampoo', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 54, item: 'baking powder', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 55, item: 'baking soda', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 56, item: 'barley', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 57, item: 'Bay Leaf', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 58, item: 'beans red, white', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 59, item: 'bread', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 60, item: 'brown rice', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 61, item: 'cashews', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 62, item: 'chickpea', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 63, item: 'chocolate', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 64, item: 'cocoa', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 65, item: 'coconut oil', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 66, item: 'coffee(TH)', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 67, item: 'Coriander dry', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 68, item: 'coriander seeds', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 69, item: 'cranberry', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 70, item: 'Dates soft', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 71, item: 'dried apricot', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 72, item: 'dried figs', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 73, item: 'dried mango', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 74, item: 'dried prunes', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 75, item: 'flax seeds', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 76, item: 'gum', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 77, item: 'lentil (green)', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 78, item: 'maple syrup', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 79, item: 'multivitamins DM', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 80, item: 'nut butter mix', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 81, item: 'oatmeal', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 82, item: 'olive oil', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 83, item: 'olives (black, green)', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 84, item: 'olives', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 85, item: 'paprika', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 86, item: 'peanut butter', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 87, item: 'peanuts (whole)', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 88, item: 'pecan nuts', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 89, item: 'pistachio', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 90, item: 'pop corn', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 91, item: 'pumpkin seeds', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 92, item: 'raisin', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 93, item: 'rice wild blend', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 94, item: 'sauce marinara bolognese', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 95, item: 'soy sauce', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 96, item: 'summer savory', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 97, item: 'sunflower seeds', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 98, item: 'tahini sauce or powdered', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 99, item: 'tomato paste', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 100, item: 'vanila extract', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 101, item: 'Vinegar', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 102, item: 'vitamin D for N', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 103, item: 'walnuts light color', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 104, item: 'white flour for mixing', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 105, item: 'whole grain flour', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 106, item: '', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 107, item: '', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 108, item: '', priority: 1, category: '1 long expiration', purchased: false },
+{ id: 109, item: 'apple', priority: 1, category: '2 fruit non-fridge', purchased: false },
+{ id: 110, item: 'banana', priority: 1, category: '2 fruit non-fridge', purchased: false },
+{ id: 111, item: 'coconut', priority: 1, category: '2 fruit non-fridge', purchased: false },
+{ id: 112, item: 'grapefruit', priority: 1, category: '2 fruit non-fridge', purchased: false },
+{ id: 113, item: 'kiwi', priority: 1, category: '2 fruit non-fridge', purchased: false },
+{ id: 114, item: 'nektarin', priority: 1, category: '2 fruit non-fridge', purchased: false },
+{ id: 115, item: 'orange', priority: 1, category: '2 fruit non-fridge', purchased: false },
+{ id: 116, item: 'peach', priority: 1, category: '2 fruit non-fridge', purchased: false },
+{ id: 117, item: 'pear', priority: 1, category: '2 fruit non-fridge', purchased: false },
+{ id: 118, item: 'persimmon', priority: 1, category: '2 fruit non-fridge', purchased: false },
+{ id: 119, item: 'pineapple', priority: 1, category: '2 fruit non-fridge', purchased: false },
+{ id: 120, item: 'plum', priority: 1, category: '2 fruit non-fridge', purchased: false },
+{ id: 121, item: 'pomegranate', priority: 1, category: '2 fruit non-fridge', purchased: false },
+{ id: 122, item: 'Strawberry', priority: 1, category: '2 fruit non-fridge', purchased: false },
+{ id: 123, item: 'watermelon', priority: 1, category: '2 fruit non-fridge', purchased: false },
+{ id: 124, item: 'avocado 1', priority: 1, category: '2 veg non-fridge', purchased: false },
+{ id: 125, item: 'beet', priority: 1, category: '2 veg non-fridge', purchased: false },
+{ id: 126, item: 'butternut squash', priority: 1, category: '2 veg non-fridge', purchased: false },
+{ id: 127, item: 'cabbage', priority: 1, category: '2 veg non-fridge', purchased: false },
+{ id: 128, item: 'carrot', priority: 1, category: '2 veg non-fridge', purchased: false },
+{ id: 129, item: 'cucumber', priority: 1, category: '2 veg non-fridge', purchased: false },
+{ id: 130, item: 'eggplant', priority: 1, category: '2 veg non-fridge', purchased: false },
+{ id: 131, item: 'onion red', priority: 1, category: '2 veg non-fridge', purchased: false },
+{ id: 132, item: 'pepper fresh', priority: 1, category: '2 veg non-fridge', purchased: false },
+{ id: 133, item: 'potato', priority: 1, category: '2 veg non-fridge', purchased: false },
+{ id: 134, item: 'sweet potato', priority: 1, category: '2 veg non-fridge', purchased: false },
+{ id: 135, item: 'tomato', priority: 1, category: '2 veg non-fridge', purchased: false },
+{ id: 136, item: 'blueberries', priority: 1, category: '5 fruit fridge', purchased: false },
+{ id: 137, item: 'cherry', priority: 1, category: '5 fruit fridge', purchased: false },
+{ id: 138, item: 'fresh cranberries', priority: 1, category: '5 fruit fridge', purchased: false },
+{ id: 139, item: 'grape', priority: 1, category: '5 fruit fridge', purchased: false },
+{ id: 140, item: 'raspberry', priority: 1, category: '5 fruit fridge', purchased: false },
+{ id: 141, item: 'strawberry', priority: 1, category: '5 fruit fridge', purchased: false },
+{ id: 142, item: 'asparagus', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 143, item: 'brocolli', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 144, item: 'cauliflower', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 145, item: 'celery', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 146, item: 'corn', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 147, item: 'enoki mushroom', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 148, item: 'green peas fresh', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 149, item: 'leeks', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 150, item: 'mint fresh', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 151, item: 'mushroom white', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 152, item: 'onion white', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 153, item: 'oyster mushroom', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 154, item: 'portabello mushroom', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 155, item: 'spinach', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 156, item: 'spring mix (in box)', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 157, item: 'zucchini', priority: 1, category: '5 veg fridge', purchased: false },
+{ id: 158, item: 'chicken fillet', priority: 1, category: '6 fridge', purchased: false },
+{ id: 159, item: 'chicken legs', priority: 1, category: '6 fridge', purchased: false },
+{ id: 160, item: 'coriander fresh', priority: 1, category: '6 fridge', purchased: false },
+{ id: 161, item: 'eggs', priority: 1, category: '6 fridge', purchased: false },
+{ id: 162, item: 'tofu calcium', priority: 1, category: '6 fridge', purchased: false },
+{ id: 163, item: 'butter', priority: 1, category: '7 dairy', purchased: false },
+{ id: 164, item: 'cheese cheddar', priority: 1, category: '7 dairy', purchased: false },
+{ id: 165, item: 'cottage cheese', priority: 1, category: '7 dairy', purchased: false },
+{ id: 166, item: 'cream cheese', priority: 1, category: '7 dairy', purchased: false },
+{ id: 167, item: 'feta', priority: 1, category: '7 dairy', purchased: false },
+{ id: 168, item: 'kefir', priority: 1, category: '7 dairy', purchased: false },
+{ id: 169, item: 'milk', priority: 1, category: '7 dairy', purchased: false },
+{ id: 170, item: 'mozarella', priority: 1, category: '7 dairy', purchased: false },
+{ id: 171, item: 'plain yogurt', priority: 1, category: '7 dairy', purchased: false },
+{ id: 172, item: 'sour cream', priority: 1, category: '7 dairy', purchased: false },
+{ id: 173, item: 'berries frozen', priority: 1, category: '8 frozen', purchased: false },
+{ id: 174, item: 'bread', priority: 1, category: '8 frozen', purchased: false },
+{ id: 175, item: 'fish', priority: 1, category: '9 meat', purchased: false },
+{ id: 176, item: 'Meat beef grinded', priority: 1, category: '9 meat', purchased: false },
+{ id: 177, item: 'meat beef whole', priority: 1, category: '9 meat', purchased: false },
+{ id: 178, item: 'minced turkey', priority: 1, category: '9 meat', purchased: false },
+              ];
+            } catch (e) {
+              console.error('Error loading from localStorage:', e);
+              return [
+                { id: 1, item: 'Milk', priority: 4, category: 'fridge', purchased: false },
+                { id: 2, item: 'Bread', priority: 3, category: 'long expiration', purchased: false },
+              ];
+            }
+          });
+
+          // Save to localStorage whenever items change
+          useEffect(() => {
+            try {
+              localStorage.setItem('shoppingListItems', JSON.stringify(items));
+            } catch (e) {
+              console.error('Error saving to localStorage:', e);
+            }
+          }, [items]);
+
+          const [newItem, setNewItem] = useState({ item: '', priority: 3, category: 'fridge' });
+          const [filters, setFilters] = useState({
+            priority: [],
+            category: '',
+            hidePurchased: true
+          });
+          const [sortConfig, setSortConfig] = useState({ key: 'priority', direction: 'desc' });
+ const categories = ['0car','0 non-costco','0 prescription','1 clothes','1 household','1 long expiration','2 fruit non-fridge','2 veg non-fridge','5 fruit fridge','5 veg fridge','6 fridge','7 dairy','8 frozen','9 meat'];
+          const categoryShortNames = {
+'0 car': '0car',
+'0 non-costco': '0nc',
+'0 prescription': '0prsc',
+'1 clothes': '1clth',
+'1 household': '1hshld',
+'1 long expiration': '1LE',
+'2 fruit non-fridge': '2fnf',
+'2 veg non-fridge': '2vnf',
+'5 fruit fridge': '5ff',
+'5 veg fridge': '5vf',
+'6 fridge': '6f',
+'7 dairy': '7dr',
+'8 frozen': '8fz',
+'9 meat': '9mt'
+          };
+
+          const priorities = [1, 2, 3, 4, 5];
+
+          const addItem = () => {
+            if (newItem.item.trim()) {
+              setItems([...items, {
+                id: Date.now(),
+                ...newItem,
+                purchased: false
+              }]);
+              setNewItem({ item: '', priority: 3, category: 'fridge' });
+            }
+          };
+
+          const togglePurchased = (id) => {
+            setItems(items.map(item => 
+              item.id === id ? { ...item, purchased: !item.purchased } : item
+            ));
+          };
+
+          const deleteItem = (id) => {
+            if (confirm('Delete this item?')) {
+              setItems(items.filter(item => item.id !== id));
+            }
+          };
+
+          const handleSort = (key) => {
+            let direction = 'asc';
+            if (sortConfig.key === key && sortConfig.direction === 'asc') {
+              direction = 'desc';
+            }
+            setSortConfig({ key, direction });
+          };
+
+          const togglePriorityFilter = (priority) => {
+            setFilters(prev => ({
+              ...prev,
+              priority: prev.priority.includes(priority)
+                ? prev.priority.filter(p => p !== priority)
+                : [...prev.priority, priority]
+            }));
+          };
+
+          const filteredAndSortedItems = useMemo(() => {
+            let filtered = items.filter(item => {
+              if (filters.hidePurchased && item.purchased) return false;
+              if (filters.priority.length > 0 && !filters.priority.includes(item.priority)) {
+                return false;
+              }
+              if (filters.category && item.category !== filters.category) {
+                return false;
+              }
+              return true;
+            });
+
+            filtered.sort((a, b) => {
+              let aVal = a[sortConfig.key];
+              let bVal = b[sortConfig.key];
+              
+              if (typeof aVal === 'string') {
+                aVal = aVal.toLowerCase();
+                bVal = bVal.toLowerCase();
+              }
+              
+              if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+              if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+              return 0;
+            });
+
+            return filtered;
+          }, [items, filters, sortConfig]);
+
+          const getSortIcon = (columnKey) => {
+            if (sortConfig.key !== columnKey) return React.createElement('span', { style: { color: '#9ca3af' } }, '↕');
+            return sortConfig.direction === 'asc' 
+              ? React.createElement(SortUpIcon, { style: { color: '#2563eb' } })
+              : React.createElement(SortDownIcon, { style: { color: '#2563eb' } });
+          };
+
+          const getPriorityClass = (priority) => {
+            if (priority >= 4) return 'priority-high';
+            if (priority === 3) return 'priority-med';
+            return 'priority-low';
+          };
+
+          return React.createElement('div', { className: 'container' },
+            React.createElement('h1', { style: { fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' } }, 'Smart Shopping List'),
+            
+            // Add New Item
+            React.createElement('div', { className: 'card' },
+              React.createElement('h2', { style: { fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' } }, 'Add New Item'),
+              React.createElement('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem', alignItems: 'end' } },
+                React.createElement('input', {
+                  type: 'text',
+                  placeholder: 'Item name',
+                  value: newItem.item,
+                  onChange: (e) => setNewItem({...newItem, item: e.target.value}),
+                  onKeyPress: (e) => e.key === 'Enter' && addItem()
+                }),
+                React.createElement('select', {
+                  value: newItem.priority,
+                  onChange: (e) => setNewItem({...newItem, priority: parseInt(e.target.value)})
+                }, priorities.map(p => 
+                  React.createElement('option', { key: p, value: p }, `Priority ${p}`)
+                )),
+                React.createElement('select', {
+                  value: newItem.category,
+                  onChange: (e) => setNewItem({...newItem, category: e.target.value})
+                }, categories.map(cat => 
+                  React.createElement('option', { key: cat, value: cat }, `${categoryShortNames[cat]} - ${cat}`)
+                )),
+                React.createElement('button', {
+                  onClick: addItem,
+                  className: 'btn btn-primary'
+                }, '+ Add')
+              )
+            ),
+
+            // Filters
+            React.createElement('div', { className: 'card' },
+              React.createElement('h3', { style: { fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' } }, 'Filters'),
+              React.createElement('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' } },
+                React.createElement('div', null,
+                  React.createElement('label', { style: { display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.25rem' } }, 'Priority'),
+                  React.createElement('div', { style: { display: 'flex', gap: '0.25rem', flexWrap: 'wrap' } },
+                    priorities.map(priority => 
+                      React.createElement('button', {
+                        key: priority,
+                        onClick: () => togglePriorityFilter(priority),
+                        style: {
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          border: 'none',
+                          fontSize: '0.75rem',
+                          cursor: 'pointer',
+                          backgroundColor: filters.priority.includes(priority) ? '#2563eb' : '#e5e7eb',
+                          color: filters.priority.includes(priority) ? 'white' : '#374151'
+                        }
+                      }, priority)
+                    )
+                  )
+                ),
+                React.createElement('div', null,
+                  React.createElement('label', { style: { display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.25rem' } }, 'Category'),
+                  React.createElement('select', {
+                    value: filters.category,
+                    onChange: (e) => setFilters({...filters, category: e.target.value}),
+                    style: { width: '100%' }
+                  }, 
+                    React.createElement('option', { value: '' }, 'All'),
+                    categories.map(cat => 
+                      React.createElement('option', { key: cat, value: cat }, `${categoryShortNames[cat]} - ${cat}`)
+                    )
+                  )
+                ),
+                React.createElement('div', null,
+                  React.createElement('label', { style: { display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' } },
+                    React.createElement('input', {
+                      type: 'checkbox',
+                      checked: filters.hidePurchased,
+                      onChange: (e) => setFilters({...filters, hidePurchased: e.target.checked})
+                    }),
+                    React.createElement('span', { style: { fontSize: '0.875rem' } }, 'Hide purchased')
+                  )
+                )
+              ),
+              React.createElement('button', {
+                onClick: () => setFilters({ priority: [], category: '', hidePurchased: true }),
+                style: { marginTop: '0.5rem', color: '#2563eb', background: 'none', border: 'none', fontSize: '0.875rem', cursor: 'pointer' }
+              }, 'Clear filters')
+            ),
+
+            // Table
+            React.createElement('div', { className: 'card', style: { overflowX: 'auto' } },
+              React.createElement('table', null,
+                React.createElement('thead', null,
+                  React.createElement('tr', null,
+                    React.createElement('th', {
+                      onClick: () => handleSort('item'),
+                      style: { cursor: 'pointer' }
+                    }, 'Item ', getSortIcon('item')),
+                    React.createElement('th', {
+                      onClick: () => handleSort('priority'),
+                      style: { cursor: 'pointer', textAlign: 'center' }
+                    }, 'Priority ', getSortIcon('priority')),
+                    React.createElement('th', {
+                      onClick: () => handleSort('category'),
+                      style: { cursor: 'pointer', textAlign: 'center' }
+                    }, 'Category ', getSortIcon('category')),
+                    React.createElement('th', { style: { textAlign: 'center' } }, 'Done'),
+                    React.createElement('th', { style: { textAlign: 'center' } }, 'Delete')
+                  )
+                ),
+                React.createElement('tbody', null,
+                  filteredAndSortedItems.map((item) =>
+                    React.createElement('tr', { 
+                      key: item.id,
+                      className: item.purchased ? 'purchased' : '',
+                      style: { backgroundColor: item.purchased ? '#f9fafb' : 'white' }
+                    },
+                      React.createElement('td', null, item.item),
+                      React.createElement('td', { style: { textAlign: 'center' } },
+                        React.createElement('span', {
+                          className: getPriorityClass(item.priority),
+                          style: { 
+                            padding: '0.25rem 0.5rem', 
+                            borderRadius: '12px', 
+                            fontSize: '0.75rem',
+                            fontWeight: 'bold'
+                          }
+                        }, item.priority)
+                      ),
+                      React.createElement('td', { style: { textAlign: 'center' } }, categoryShortNames[item.category]),
+                      React.createElement('td', { style: { textAlign: 'center' } },
+                        React.createElement('input', {
+                          type: 'checkbox',
+                          checked: item.purchased,
+                          onChange: () => togglePurchased(item.id)
+                        })
+                      ),
+                      React.createElement('td', { style: { textAlign: 'center' } },
+                        React.createElement('button', {
+                          onClick: () => deleteItem(item.id),
+                          className: 'btn-danger',
+                          style: { padding: '0.25rem 0.5rem', fontSize: '0.75rem' }
+                        }, '🗑')
+                      )
+                    )
+                  )
+                )
+              ),
+              filteredAndSortedItems.length === 0 && 
+                React.createElement('div', { style: { textAlign: 'center', padding: '2rem', color: '#6b7280' } },
+                  React.createElement('p', null, 'No items match your current filters'),
+                  React.createElement('p', { style: { fontSize: '0.875rem' } }, 'Try adjusting your filters or add new items')
+                )
+            ),
+
+            // Summary
+            React.createElement('div', { className: 'card' },
+              React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', color: '#6b7280' } },
+                React.createElement('span', null, `Total: ${items.length}`),
+                React.createElement('span', null, `Showing: ${filteredAndSortedItems.length}`),
+                React.createElement('span', null, `Purchased: ${items.filter(item => item.purchased).length}`)
+              )
+            )
+          );
+        };
+
+        // Render the app
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot ? ReactDOM.createRoot(container) : null;
+        
+        if (root) {
+          root.render(React.createElement(ShoppingListApp));
+        } else {
+          ReactDOM.render(React.createElement(ShoppingListApp), container);
+        }
+    </script>
+</body>
+</html>
