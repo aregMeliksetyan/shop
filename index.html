@@ -4,208 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Shopping List</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        /* Fallback styles if Tailwind doesn't load */
+        body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background-color: #f9fafb; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 1rem; margin-bottom: 1rem; }
+        .btn { padding: 0.5rem 1rem; border-radius: 4px; border: none; cursor: pointer; font-size: 0.875rem; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-danger:hover { background: #b91c1c; }
+        input, select { padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.875rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background: #f9fafb; font-weight: 600; cursor: pointer; }
+        .priority-high { background: #fee2e2; color: #991b1b; }
+        .priority-med { background: #fef3c7; color: #92400e; }
+        .priority-low { background: #dcfce7; color: #166534; }
+        .purchased { opacity: 0.6; text-decoration: line-through; }
+    </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <div style="padding: 20px; text-align: center;">
+            <p>Loading...</p>
+            <p style="font-size: 12px; color: #666;">If this doesn't load, try opening Developer Tools (F12) to see any errors.</p>
+        </div>
+    </div>
 
     <script type="text/babel">
         const { useState, useMemo, useEffect } = React;
-        const { Plus, Filter, SortAsc, SortDesc, Trash2 } = lucide;
+
+        // Simple icons as text/symbols
+        const PlusIcon = () => "+";
+        const TrashIcon = () => "🗑";
+        const SortUpIcon = () => "↑";
+        const SortDownIcon = () => "↓";
 
         const ShoppingListApp = () => {
           // Load data from localStorage on startup
           const [items, setItems] = useState(() => {
-            const saved = localStorage.getItem('shoppingListItems');
-            return saved ? JSON.parse(saved) : [
-{ id: 1, item: 'bulgur', priority: 0, category: '0non-costco', purchased: false },
-{ id: 2, item: 'corn starch-amidon de maïs', priority: 0, category: '0non-costco', purchased: false },
-{ id: 3, item: 'cotton', priority: 0, category: '0non-costco', purchased: false },
-{ id: 4, item: 'garlic', priority: 0, category: '0non-costco', purchased: false },
-{ id: 5, item: 'ginger', priority: 0, category: '0non-costco', purchased: false },
-{ id: 6, item: 'lemon', priority: 0, category: '0non-costco', purchased: false },
-{ id: 7, item: 'lettuce', priority: 0, category: '0non-costco', purchased: false },
-{ id: 8, item: 'mustard powder', priority: 0, category: '0non-costco', purchased: false },
-{ id: 9, item: 'mustard-moutarde', priority: 0, category: '0non-costco', purchased: false },
-{ id: 10, item: 'nutritional yeast', priority: 0, category: '0non-costco', purchased: false },
-{ id: 11, item: 'paper for oven-papier pour le four', priority: 0, category: '0non-costco', purchased: false },
-{ id: 12, item: 'pickled cucumbers-concombres marinés', priority: 0, category: '0non-costco', purchased: false },
-{ id: 13, item: 'plastic wrap-film plastique', priority: 0, category: '0non-costco', purchased: false },
-{ id: 14, item: 'Sanitizer small container-Petit contenant de désinfectant', priority: 0, category: '0non-costco', purchased: false },
-{ id: 15, item: 'seven grains-sept grains', priority: 0, category: '0non-costco', purchased: false },
-{ id: 16, item: '', priority: 0, category: '0non-costco', purchased: false },
-{ id: 17, item: '', priority: 0, category: '0non-costco', purchased: false },
-{ id: 18, item: '', priority: 0, category: '0non-costco', purchased: false },
-{ id: 19, item: 'pharmacy-pharmacie', priority: 0, category: '0prescription', purchased: false },
-{ id: 20, item: 'Synthroid AG-Synthroid AG', priority: 0, category: '0prescription', purchased: false },
-{ id: 21, item: 'Synthroid GM-Synthroïde GM', priority: 0, category: '0prescription', purchased: false },
-{ id: 22, item: 'boots for M-bottes pour', priority: 0, category: '1clothes', purchased: false },
-{ id: 23, item: 'boots GM-bottes GM', priority: 0, category: '1clothes', purchased: false },
-{ id: 24, item: 'Pant (soft, warm)-Pantalon (doux, chaud)', priority: 0, category: '1clothes', purchased: false },
-{ id: 25, item: 'rain coat for D also windbreaker-manteau pour coupe-vent D', priority: 0, category: '1clothes', purchased: false },
-{ id: 26, item: 'snowsuit (coat and pant) for Mary and David', priority: 0, category: '1clothes', purchased: false },
-{ id: 27, item: 'wool tights-collants en laine', priority: 0, category: '1clothes', purchased: false },
-{ id: 28, item: '', priority: 0, category: '1clothes', purchased: false },
-{ id: 29, item: 'baby shampoo -shampoing pour bébé ', priority: 0, category: '1household', purchased: false },
-{ id: 30, item: 'bulb', priority: 0, category: '1household', purchased: false },
-{ id: 31, item: 'dishwasher soap-liquide lave-vaisselle', priority: 0, category: '1household', purchased: false },
-{ id: 32, item: 'disposable gloves-gants jetables', priority: 0, category: '1household', purchased: false },
-{ id: 33, item: 'gift card-carte cadeau', priority: 0, category: '1household', purchased: false },
-{ id: 34, item: 'green soap-savon vert', priority: 0, category: '1household', purchased: false },
-{ id: 35, item: 'laundry detergent -Lessive ', priority: 0, category: '1household', purchased: false },
-{ id: 36, item: 'napkin (tissue)-serviette (mouchoir)', priority: 0, category: '1household', purchased: false },
-{ id: 37, item: 'paper towel-serviette en papier', priority: 0, category: '1household', purchased: false },
-{ id: 38, item: 'shampoo-shampooing', priority: 0, category: '1household', purchased: false },
-{ id: 39, item: 'soap liquid-savon liquide', priority: 0, category: '1household', purchased: false },
-{ id: 40, item: 'sponges for washing dishes-éponges pour laver la vaisselle', priority: 0, category: '1household', purchased: false },
-{ id: 41, item: 'sunscreen-crème solaire', priority: 0, category: '1household', purchased: false },
-{ id: 42, item: 'toilet paper-papier toilette', priority: 0, category: '1household', purchased: false },
-{ id: 43, item: 'tooth paste-dentifrice', priority: 0, category: '1household', purchased: false },
-{ id: 44, item: 'Valentin cards and gift-Cartes et cadeaux Valentin', priority: 0, category: '1household', purchased: false },
-{ id: 45, item: 'ziplock bags -sacs ziplock ', priority: 0, category: '1household', purchased: false },
-{ id: 46, item: '', priority: 0, category: '1household', purchased: false },
-{ id: 47, item: '', priority: 0, category: '1household', purchased: false },
-{ id: 48, item: '', priority: 0, category: '1household', purchased: false },
-{ id: 49, item: '             tea  ', priority: 0, category: '1long.exp', purchased: false },
-{ id: 50, item: 'almond-amande', priority: 0, category: '1long.exp', purchased: false },
-{ id: 51, item: 'artichokes in marinade-artichauts en marinade', priority: 0, category: '1long.exp', purchased: false },
-{ id: 52, item: 'avocado oil -huile d'avocat ', priority: 0, category: '1long.exp', purchased: false },
-{ id: 53, item: 'baby body shampoo-shampoing corps bébé', priority: 0, category: '1long.exp', purchased: false },
-{ id: 54, item: 'baking powder-levure chimique', priority: 0, category: '1long.exp', purchased: false },
-{ id: 55, item: 'baking soda-bicarbonate de soude', priority: 0, category: '1long.exp', purchased: false },
-{ id: 56, item: 'barley-orge', priority: 0, category: '1long.exp', purchased: false },
-{ id: 57, item: 'Bay Leaf-Feuille de laurier', priority: 0, category: '1long.exp', purchased: false },
-{ id: 58, item: 'beans red, white-haricots rouges, blancs', priority: 0, category: '1long.exp', purchased: false },
-{ id: 59, item: 'bread', priority: 0, category: '1long.exp', purchased: false },
-{ id: 60, item: 'brown rice-riz brun', priority: 0, category: '1long.exp', purchased: false },
-{ id: 61, item: 'cashews -noix de cajou ', priority: 0, category: '1long.exp', purchased: false },
-{ id: 62, item: 'chickpea-pois chiche', priority: 0, category: '1long.exp', purchased: false },
-{ id: 63, item: 'chocolate', priority: 0, category: '1long.exp', purchased: false },
-{ id: 64, item: 'cocoa-cacao', priority: 0, category: '1long.exp', purchased: false },
-{ id: 65, item: 'coconut oil', priority: 0, category: '1long.exp', purchased: false },
-{ id: 66, item: 'coffee(TH)-café(TH)', priority: 0, category: '1long.exp', purchased: false },
-{ id: 67, item: 'Coriander dry -Coriandre sèche ', priority: 0, category: '1long.exp', purchased: false },
-{ id: 68, item: 'coriander seeds-graines de coriandre', priority: 0, category: '1long.exp', purchased: false },
-{ id: 69, item: 'cranberry-canneberge', priority: 0, category: '1long.exp', purchased: false },
-{ id: 70, item: 'Dates soft-Dattes douces', priority: 0, category: '1long.exp', purchased: false },
-{ id: 71, item: 'dried apricot-abricot sec', priority: 0, category: '1long.exp', purchased: false },
-{ id: 72, item: 'dried figs-figues séchées', priority: 0, category: '1long.exp', purchased: false },
-{ id: 73, item: 'dried mango-mangue séchée', priority: 0, category: '1long.exp', purchased: false },
-{ id: 74, item: 'dried prunes-pruneaux séchés', priority: 0, category: '1long.exp', purchased: false },
-{ id: 75, item: 'flax seeds-graines de lin', priority: 0, category: '1long.exp', purchased: false },
-{ id: 76, item: 'gum', priority: 0, category: '1long.exp', purchased: false },
-{ id: 77, item: 'lentil (green)-lentille (verte)', priority: 0, category: '1long.exp', purchased: false },
-{ id: 78, item: 'maple syrup-sirop d'érable', priority: 0, category: '1long.exp', purchased: false },
-{ id: 79, item: 'multivitamins DM', priority: 0, category: '1long.exp', purchased: false },
-{ id: 80, item: 'nut butter mix-mélange de beurre de noix', priority: 0, category: '1long.exp', purchased: false },
-{ id: 81, item: 'oatmeal-gruau', priority: 0, category: '1long.exp', purchased: false },
-{ id: 82, item: 'olive oil-huile d'olive', priority: 0, category: '1long.exp', purchased: false },
-{ id: 83, item: 'olives (black, green)-olives (noires, vertes)', priority: 0, category: '1long.exp', purchased: false },
-{ id: 84, item: 'olives-olives', priority: 0, category: '1long.exp', purchased: false },
-{ id: 85, item: 'paprika-paprika', priority: 0, category: '1long.exp', purchased: false },
-{ id: 86, item: 'peanut butter-beurre de cacahuète', priority: 0, category: '1long.exp', purchased: false },
-{ id: 87, item: 'peanuts (whole)-cacahuètes (entières)', priority: 0, category: '1long.exp', purchased: false },
-{ id: 88, item: 'pecan nuts', priority: 0, category: '1long.exp', purchased: false },
-{ id: 89, item: 'pistachio', priority: 0, category: '1long.exp', purchased: false },
-{ id: 90, item: 'pop corn-Popcorn', priority: 0, category: '1long.exp', purchased: false },
-{ id: 91, item: 'pumpkin seeds-graines de citrouille', priority: 0, category: '1long.exp', purchased: false },
-{ id: 92, item: 'raisin-raisin', priority: 0, category: '1long.exp', purchased: false },
-{ id: 93, item: 'rice wild blend-mélange de riz sauvage', priority: 0, category: '1long.exp', purchased: false },
-{ id: 94, item: 'sauce marinara bolognese -sauce marinara bolognaise ', priority: 0, category: '1long.exp', purchased: false },
-{ id: 95, item: 'soy sauce-sauce de soja', priority: 0, category: '1long.exp', purchased: false },
-{ id: 96, item: 'summer savory-sarriette d'été', priority: 0, category: '1long.exp', purchased: false },
-{ id: 97, item: 'sunflower seeds-graines de tournesol', priority: 0, category: '1long.exp', purchased: false },
-{ id: 98, item: 'tahini sauce or powdered -sauce tahini ou en poudre ', priority: 0, category: '1long.exp', purchased: false },
-{ id: 99, item: 'tomato paste-concentré de tomate', priority: 0, category: '1long.exp', purchased: false },
-{ id: 100, item: 'vanila extract-extrait de vanille', priority: 0, category: '1long.exp', purchased: false },
-{ id: 101, item: 'Vinegar-Vinaigre', priority: 0, category: '1long.exp', purchased: false },
-{ id: 102, item: 'vitamin D for Mary-vitamine D pour Dav', priority: 0, category: '1long.exp', purchased: false },
-{ id: 103, item: 'walnuts light color-noix de couleur claire', priority: 0, category: '1long.exp', purchased: false },
-{ id: 104, item: 'white flour for mixing', priority: 0, category: '1long.exp', purchased: false },
-{ id: 105, item: 'whole grain flour-farine de grains entiers', priority: 0, category: '1long.exp', purchased: false },
-{ id: 106, item: '', priority: 0, category: '1long.exp', purchased: false },
-{ id: 107, item: '', priority: 0, category: '1long.exp', purchased: false },
-{ id: 108, item: '', priority: 0, category: '1long.exp', purchased: false },
-{ id: 109, item: 'apple-pomme 1 p', priority: 0, category: '2fruit non fridge', purchased: false },
-{ id: 110, item: 'banana-banane 3 p', priority: 0, category: '2fruit non fridge', purchased: false },
-{ id: 111, item: 'coconut-noix de coco', priority: 0, category: '2fruit non fridge', purchased: false },
-{ id: 112, item: 'grapefruit-pamplemousse', priority: 0, category: '2fruit non fridge', purchased: false },
-{ id: 113, item: 'kiwi-kiwi', priority: 0, category: '2fruit non fridge', purchased: false },
-{ id: 114, item: 'nektarin-nectarine', priority: 0, category: '2fruit non fridge', purchased: false },
-{ id: 115, item: 'orange-orange', priority: 0, category: '2fruit non fridge', purchased: false },
-{ id: 116, item: 'peach-pêche', priority: 0, category: '2fruit non fridge', purchased: false },
-{ id: 117, item: 'pear-poire', priority: 0, category: '2fruit non fridge', purchased: false },
-{ id: 118, item: 'persimmon-kaki', priority: 0, category: '2fruit non fridge', purchased: false },
-{ id: 119, item: 'pineapple-ananas', priority: 0, category: '2fruit non fridge', purchased: false },
-{ id: 120, item: 'plum-prune', priority: 0, category: '2fruit non fridge', purchased: false },
-{ id: 121, item: 'pomegranate-grenade', priority: 0, category: '2fruit non fridge', purchased: false },
-{ id: 122, item: 'Strawberry-Fraise', priority: 0, category: '2fruit non fridge', purchased: false },
-{ id: 123, item: 'watermelon-pastèque', priority: 0, category: '2fruit non fridge', purchased: false },
-{ id: 124, item: 'avocado 1  -avocat 1', priority: 0, category: '2veg non fridge', purchased: false },
-{ id: 125, item: 'beet-betterave', priority: 0, category: '2veg non fridge', purchased: false },
-{ id: 126, item: 'butternut squash-courge musquée', priority: 0, category: '2veg non fridge', purchased: false },
-{ id: 127, item: 'cabbage-chou', priority: 0, category: '2veg non fridge', purchased: false },
-{ id: 128, item: 'carrot-carotte', priority: 0, category: '2veg non fridge', purchased: false },
-{ id: 129, item: 'cucumber-concombre', priority: 0, category: '2veg non fridge', purchased: false },
-{ id: 130, item: 'eggplant-aubergine', priority: 0, category: '2veg non fridge', purchased: false },
-{ id: 131, item: 'onion red-oignon rouge', priority: 0, category: '2veg non fridge', purchased: false },
-{ id: 132, item: 'pepper fresh-poivre frais', priority: 0, category: '2veg non fridge', purchased: false },
-{ id: 133, item: 'potato-pomme de terre', priority: 0, category: '2veg non fridge', purchased: false },
-{ id: 134, item: 'sweet potato-patate douce', priority: 0, category: '2veg non fridge', purchased: false },
-{ id: 135, item: 'tomato', priority: 0, category: '2veg non fridge', purchased: false },
-{ id: 136, item: 'blueberries-b', priority: 0, category: '5fruit fridge', purchased: false },
-{ id: 137, item: 'cherry-cerise', priority: 0, category: '5fruit fridge', purchased: false },
-{ id: 138, item: 'fresh cranberries-canneberges fraîches', priority: 0, category: '5fruit fridge', purchased: false },
-{ id: 139, item: 'grape-raisin', priority: 0, category: '5fruit fridge', purchased: false },
-{ id: 140, item: 'raspberry', priority: 0, category: '5fruit fridge', purchased: false },
-{ id: 141, item: 'strawberry-fraise', priority: 0, category: '5fruit fridge', purchased: false },
-{ id: 142, item: 'asparagus-asperge', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 143, item: 'brocolli-brocoli', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 144, item: 'cauliflower-chou-fleur', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 145, item: 'celery-céleri', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 146, item: 'corn-maïs', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 147, item: 'enoki mushroom-champignon enoki', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 148, item: 'green peas fresh-pois verts frais', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 149, item: 'leeks-poireaux', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 150, item: 'mint fresh-menthe fraîche', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 151, item: 'mushroom white-champignon blanc', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 152, item: 'onion white -oignon blanc ', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 153, item: 'oyster mushroom-pleurotes', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 154, item: 'portabello mushroom-champignon portabello', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 155, item: 'spinach-épinard', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 156, item: 'spring mix (in box)-mélange printanier (en boîte)', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 157, item: 'zucchini-courgettes', priority: 0, category: '5veg fridge', purchased: false },
-{ id: 158, item: 'chicken fillet-filet de poulet', priority: 0, category: '8fridge', purchased: false },
-{ id: 159, item: 'chicken legs-cuisses de poulet', priority: 0, category: '8fridge', purchased: false },
-{ id: 160, item: 'coriander fresh-coriandre fraîche', priority: 0, category: '8fridge', purchased: false },
-{ id: 161, item: 'eggs', priority: 0, category: '8fridge', purchased: false },
-{ id: 162, item: 'tofu calcium-calcium du tofu', priority: 0, category: '8fridge', purchased: false },
-{ id: 163, item: 'butter -beurre 2 pcs', priority: 0, category: '9dairy', purchased: false },
-{ id: 164, item: 'cheese cheddar-fromage cheddar', priority: 0, category: '9dairy', purchased: false },
-{ id: 165, item: 'cottage cheese-fromage blanc', priority: 0, category: '9dairy', purchased: false },
-{ id: 166, item: 'cream cheese-fromage à la crème', priority: 0, category: '9dairy', purchased: false },
-{ id: 167, item: 'feta-cheese ', priority: 0, category: '9dairy', purchased: false },
-{ id: 168, item: 'kefir', priority: 0, category: '9dairy', purchased: false },
-{ id: 169, item: 'milk', priority: 0, category: '9dairy', purchased: false },
-{ id: 170, item: 'mozarella', priority: 0, category: '9dairy', purchased: false },
-{ id: 171, item: 'plain yogurt- yaourt', priority: 0, category: '9dairy', purchased: false },
-{ id: 172, item: 'sour cream-Crème fraîche', priority: 0, category: '9dairy', purchased: false },
-{ id: 173, item: 'berries frozen-baies congelées', priority: 0, category: '9frozen', purchased: false },
-{ id: 174, item: 'bread-pain', priority: 0, category: '9frozen', purchased: false },
-{ id: 175, item: 'fish', priority: 0, category: '9meat', purchased: false },
-{ id: 176, item: 'Meat beef grinded-Viande de boeuf hachée', priority: 0, category: '9meat', purchased: false },
-{ id: 177, item: 'meat beef whole-viande boeuf entier', priority: 0, category: '9meat', purchased: false },
-{ id: 178, item: 'minced turkey-dinde hachée', priority: 0, category: '9meat', purchased: false },
-            ];
+            try {
+              const saved = localStorage.getItem('shoppingListItems');
+              return saved ? JSON.parse(saved) : [
+                { id: 1, item: 'Milk', priority: 4, category: 'fridge', purchased: false },
+                { id: 2, item: 'Bread', priority: 3, category: 'long expiration', purchased: false },
+                { id: 3, item: 'Ice Cream', priority: 5, category: 'freezer', purchased: false },
+                { id: 4, item: 'T-Shirt', priority: 2, category: 'clothes', purchased: false },
+                { id: 5, item: 'Chicken Breast', priority: 4, category: 'freezer', purchased: false },
+                { id: 6, item: 'Pasta', priority: 3, category: 'long expiration', purchased: false },
+              ];
+            } catch (e) {
+              console.error('Error loading from localStorage:', e);
+              return [
+                { id: 1, item: 'Milk', priority: 4, category: 'fridge', purchased: false },
+                { id: 2, item: 'Bread', priority: 3, category: 'long expiration', purchased: false },
+              ];
+            }
           });
 
           // Save to localStorage whenever items change
           useEffect(() => {
-            localStorage.setItem('shoppingListItems', JSON.stringify(items));
+            try {
+              localStorage.setItem('shoppingListItems', JSON.stringify(items));
+            } catch (e) {
+              console.error('Error saving to localStorage:', e);
+            }
           }, [items]);
 
           const [newItem, setNewItem] = useState({ item: '', priority: 3, category: 'fridge' });
@@ -243,7 +111,9 @@
           };
 
           const deleteItem = (id) => {
-            setItems(items.filter(item => item.id !== id));
+            if (confirm('Delete this item?')) {
+              setItems(items.filter(item => item.id !== id));
+            }
           };
 
           const handleSort = (key) => {
@@ -293,234 +163,191 @@
           }, [items, filters, sortConfig]);
 
           const getSortIcon = (columnKey) => {
-            if (sortConfig.key !== columnKey) return React.createElement(SortAsc, { className: "w-4 h-4 text-gray-400" });
+            if (sortConfig.key !== columnKey) return React.createElement('span', { style: { color: '#9ca3af' } }, '↕');
             return sortConfig.direction === 'asc' 
-              ? React.createElement(SortAsc, { className: "w-4 h-4 text-blue-600" })
-              : React.createElement(SortDesc, { className: "w-4 h-4 text-blue-600" });
+              ? React.createElement(SortUpIcon, { style: { color: '#2563eb' } })
+              : React.createElement(SortDownIcon, { style: { color: '#2563eb' } });
           };
 
-          return (
-            <div className="min-h-screen bg-gray-50 p-2">
-              <div className="max-w-7xl mx-auto">
-                <h1 className="text-xl font-bold text-gray-800 mb-3">Smart Shopping List</h1>
-                
-                {/* Add New Item */}
-                <div className="bg-white rounded shadow p-3 mb-3">
-                  <h2 className="text-sm font-semibold mb-2">Add New Item</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-                    <input
-                      type="text"
-                      placeholder="Item name"
-                      value={newItem.item}
-                      onChange={(e) => setNewItem({...newItem, item: e.target.value})}
-                      onKeyPress={(e) => e.key === 'Enter' && addItem()}
-                      className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <select
-                      value={newItem.priority}
-                      onChange={(e) => setNewItem({...newItem, priority: parseInt(e.target.value)})}
-                      className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      {priorities.map(p => (
-                        <option key={p} value={p}>Priority {p}</option>
-                      ))}
-                    </select>
-                    <select
-                      value={newItem.category}
-                      onChange={(e) => setNewItem({...newItem, category: e.target.value})}
-                      className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      {categories.map(cat => (
-                        <option key={cat} value={cat}>{categoryShortNames[cat]} - {cat}</option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={addItem}
-                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
-                    >
-                      {React.createElement(Plus, { className: "w-3 h-3" })}
-                      Add
-                    </button>
-                  </div>
-                </div>
+          const getPriorityClass = (priority) => {
+            if (priority >= 4) return 'priority-high';
+            if (priority === 3) return 'priority-med';
+            return 'priority-low';
+          };
 
-                {/* Filters */}
-                <div className="bg-white rounded shadow p-3 mb-3">
-                  <div className="flex items-center gap-1 mb-2">
-                    {React.createElement(Filter, { className: "w-4 h-4 text-gray-600" })}
-                    <h2 className="text-sm font-semibold">Filters</h2>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {/* Priority Filter */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Priority</label>
-                      <div className="flex flex-wrap gap-1">
-                        {priorities.map(priority => (
-                          <button
-                            key={priority}
-                            onClick={() => togglePriorityFilter(priority)}
-                            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                              filters.priority.includes(priority)
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                            }`}
-                          >
-                            {priority}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+          return React.createElement('div', { className: 'container' },
+            React.createElement('h1', { style: { fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' } }, 'Smart Shopping List'),
+            
+            // Add New Item
+            React.createElement('div', { className: 'card' },
+              React.createElement('h2', { style: { fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' } }, 'Add New Item'),
+              React.createElement('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem', alignItems: 'end' } },
+                React.createElement('input', {
+                  type: 'text',
+                  placeholder: 'Item name',
+                  value: newItem.item,
+                  onChange: (e) => setNewItem({...newItem, item: e.target.value}),
+                  onKeyPress: (e) => e.key === 'Enter' && addItem()
+                }),
+                React.createElement('select', {
+                  value: newItem.priority,
+                  onChange: (e) => setNewItem({...newItem, priority: parseInt(e.target.value)})
+                }, priorities.map(p => 
+                  React.createElement('option', { key: p, value: p }, `Priority ${p}`)
+                )),
+                React.createElement('select', {
+                  value: newItem.category,
+                  onChange: (e) => setNewItem({...newItem, category: e.target.value})
+                }, categories.map(cat => 
+                  React.createElement('option', { key: cat, value: cat }, `${categoryShortNames[cat]} - ${cat}`)
+                )),
+                React.createElement('button', {
+                  onClick: addItem,
+                  className: 'btn btn-primary'
+                }, '+ Add')
+              )
+            ),
 
-                    {/* Category Filter */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
-                      <select
-                        value={filters.category}
-                        onChange={(e) => setFilters({...filters, category: e.target.value})}
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">All</option>
-                        {categories.map(cat => (
-                          <option key={cat} value={cat}>{categoryShortNames[cat]} - {cat}</option>
-                        ))}
-                      </select>
-                    </div>
+            // Filters
+            React.createElement('div', { className: 'card' },
+              React.createElement('h3', { style: { fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' } }, 'Filters'),
+              React.createElement('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' } },
+                React.createElement('div', null,
+                  React.createElement('label', { style: { display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.25rem' } }, 'Priority'),
+                  React.createElement('div', { style: { display: 'flex', gap: '0.25rem', flexWrap: 'wrap' } },
+                    priorities.map(priority => 
+                      React.createElement('button', {
+                        key: priority,
+                        onClick: () => togglePriorityFilter(priority),
+                        style: {
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          border: 'none',
+                          fontSize: '0.75rem',
+                          cursor: 'pointer',
+                          backgroundColor: filters.priority.includes(priority) ? '#2563eb' : '#e5e7eb',
+                          color: filters.priority.includes(priority) ? 'white' : '#374151'
+                        }
+                      }, priority)
+                    )
+                  )
+                ),
+                React.createElement('div', null,
+                  React.createElement('label', { style: { display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.25rem' } }, 'Category'),
+                  React.createElement('select', {
+                    value: filters.category,
+                    onChange: (e) => setFilters({...filters, category: e.target.value}),
+                    style: { width: '100%' }
+                  }, 
+                    React.createElement('option', { value: '' }, 'All'),
+                    categories.map(cat => 
+                      React.createElement('option', { key: cat, value: cat }, `${categoryShortNames[cat]} - ${cat}`)
+                    )
+                  )
+                ),
+                React.createElement('div', null,
+                  React.createElement('label', { style: { display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' } },
+                    React.createElement('input', {
+                      type: 'checkbox',
+                      checked: filters.hidePurchased,
+                      onChange: (e) => setFilters({...filters, hidePurchased: e.target.checked})
+                    }),
+                    React.createElement('span', { style: { fontSize: '0.875rem' } }, 'Hide purchased')
+                  )
+                )
+              ),
+              React.createElement('button', {
+                onClick: () => setFilters({ priority: [], category: '', hidePurchased: true }),
+                style: { marginTop: '0.5rem', color: '#2563eb', background: 'none', border: 'none', fontSize: '0.875rem', cursor: 'pointer' }
+              }, 'Clear filters')
+            ),
 
-                    {/* Hide Purchased */}
-                    <div className="flex items-center pt-4">
-                      <label className="flex items-center space-x-1 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={filters.hidePurchased}
-                          onChange={(e) => setFilters({...filters, hidePurchased: e.target.checked})}
-                          className="w-3 h-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                        <span className="text-xs font-medium text-gray-700">Hide purchased</span>
-                      </label>
-                    </div>
-                  </div>
+            // Table
+            React.createElement('div', { className: 'card', style: { overflowX: 'auto' } },
+              React.createElement('table', null,
+                React.createElement('thead', null,
+                  React.createElement('tr', null,
+                    React.createElement('th', {
+                      onClick: () => handleSort('item'),
+                      style: { cursor: 'pointer' }
+                    }, 'Item ', getSortIcon('item')),
+                    React.createElement('th', {
+                      onClick: () => handleSort('priority'),
+                      style: { cursor: 'pointer', textAlign: 'center' }
+                    }, 'Priority ', getSortIcon('priority')),
+                    React.createElement('th', {
+                      onClick: () => handleSort('category'),
+                      style: { cursor: 'pointer', textAlign: 'center' }
+                    }, 'Category ', getSortIcon('category')),
+                    React.createElement('th', { style: { textAlign: 'center' } }, 'Done'),
+                    React.createElement('th', { style: { textAlign: 'center' } }, 'Delete')
+                  )
+                ),
+                React.createElement('tbody', null,
+                  filteredAndSortedItems.map((item) =>
+                    React.createElement('tr', { 
+                      key: item.id,
+                      className: item.purchased ? 'purchased' : '',
+                      style: { backgroundColor: item.purchased ? '#f9fafb' : 'white' }
+                    },
+                      React.createElement('td', null, item.item),
+                      React.createElement('td', { style: { textAlign: 'center' } },
+                        React.createElement('span', {
+                          className: getPriorityClass(item.priority),
+                          style: { 
+                            padding: '0.25rem 0.5rem', 
+                            borderRadius: '12px', 
+                            fontSize: '0.75rem',
+                            fontWeight: 'bold'
+                          }
+                        }, item.priority)
+                      ),
+                      React.createElement('td', { style: { textAlign: 'center' } }, categoryShortNames[item.category]),
+                      React.createElement('td', { style: { textAlign: 'center' } },
+                        React.createElement('input', {
+                          type: 'checkbox',
+                          checked: item.purchased,
+                          onChange: () => togglePurchased(item.id)
+                        })
+                      ),
+                      React.createElement('td', { style: { textAlign: 'center' } },
+                        React.createElement('button', {
+                          onClick: () => deleteItem(item.id),
+                          className: 'btn-danger',
+                          style: { padding: '0.25rem 0.5rem', fontSize: '0.75rem' }
+                        }, '🗑')
+                      )
+                    )
+                  )
+                )
+              ),
+              filteredAndSortedItems.length === 0 && 
+                React.createElement('div', { style: { textAlign: 'center', padding: '2rem', color: '#6b7280' } },
+                  React.createElement('p', null, 'No items match your current filters'),
+                  React.createElement('p', { style: { fontSize: '0.875rem' } }, 'Try adjusting your filters or add new items')
+                )
+            ),
 
-                  {/* Clear Filters */}
-                  <button
-                    onClick={() => setFilters({ priority: [], category: '', hidePurchased: true })}
-                    className="mt-2 text-xs text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    Clear filters
-                  </button>
-                </div>
-
-                {/* Table */}
-                <div className="bg-white rounded shadow overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs">
-                      <thead className="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                          <th 
-                            className="px-1 py-1 text-left text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none"
-                            onClick={() => handleSort('item')}
-                          >
-                            <div className="flex items-center gap-1">
-                              Item
-                              {getSortIcon('item')}
-                            </div>
-                          </th>
-                          <th 
-                            className="px-1 py-1 text-center text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none w-8"
-                            onClick={() => handleSort('priority')}
-                          >
-                            <div className="flex items-center justify-center gap-1">
-                              P
-                              {getSortIcon('priority')}
-                            </div>
-                          </th>
-                          <th 
-                            className="px-1 py-1 text-center text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none w-8"
-                            onClick={() => handleSort('category')}
-                          >
-                            <div className="flex items-center justify-center gap-1">
-                              C
-                              {getSortIcon('category')}
-                            </div>
-                          </th>
-                          <th className="px-1 py-1 text-center text-xs font-medium text-gray-700 w-8">
-                            ✓
-                          </th>
-                          <th className="px-1 py-1 text-center text-xs font-medium text-gray-700 w-8">
-                            Del
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {filteredAndSortedItems.map((item) => (
-                          <tr 
-                            key={item.id} 
-                            className={`hover:bg-gray-50 transition-colors ${
-                              item.purchased ? 'opacity-60 bg-gray-50' : ''
-                            }`}
-                          >
-                            <td className="px-1 py-0.5">
-                              <span className={`text-xs ${item.purchased ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                                {item.item}
-                              </span>
-                            </td>
-                            <td className="px-1 py-0.5 text-center">
-                              <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-xs font-bold ${
-                                item.priority >= 4 ? 'bg-red-100 text-red-800' :
-                                item.priority === 3 ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-green-100 text-green-800'
-                              }`}>
-                                {item.priority}
-                              </span>
-                            </td>
-                            <td className="px-1 py-0.5 text-center">
-                              <span className="text-xs text-gray-900 font-medium">{categoryShortNames[item.category]}</span>
-                            </td>
-                            <td className="px-1 py-0.5 text-center">
-                              <input
-                                type="checkbox"
-                                checked={item.purchased}
-                                onChange={() => togglePurchased(item.id)}
-                                className="w-3 h-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                              />
-                            </td>
-                            <td className="px-1 py-0.5 text-center">
-                              <button
-                                onClick={() => deleteItem(item.id)}
-                                className="text-red-600 hover:text-red-800 transition-colors"
-                                title="Delete item"
-                              >
-                                {React.createElement(Trash2, { className: "w-3 h-3" })}
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {filteredAndSortedItems.length === 0 && (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500 text-sm">No items match your current filters</p>
-                      <p className="text-gray-400 text-xs mt-1">Try adjusting your filters or add new items</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Summary */}
-                <div className="mt-3 bg-white rounded shadow p-2">
-                  <div className="flex justify-between items-center text-xs text-gray-600">
-                    <span>Total: {items.length}</span>
-                    <span>Showing: {filteredAndSortedItems.length}</span>
-                    <span>Purchased: {items.filter(item => item.purchased).length}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            // Summary
+            React.createElement('div', { className: 'card' },
+              React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', color: '#6b7280' } },
+                React.createElement('span', null, `Total: ${items.length}`),
+                React.createElement('span', null, `Showing: ${filteredAndSortedItems.length}`),
+                React.createElement('span', null, `Purchased: ${items.filter(item => item.purchased).length}`)
+              )
+            )
           );
         };
 
-        ReactDOM.render(React.createElement(ShoppingListApp), document.getElementById('root'));
+        // Render the app
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot ? ReactDOM.createRoot(container) : null;
+        
+        if (root) {
+          root.render(React.createElement(ShoppingListApp));
+        } else {
+          ReactDOM.render(React.createElement(ShoppingListApp), container);
+        }
     </script>
 </body>
 </html>
